@@ -8,6 +8,7 @@ import { registerGetDatasetInfoTool } from './dataset_info.js';
 import { registerListResourcesTool } from './resources.js';
 import { registerSearchRecordsTool } from './search.js';
 import { registerOrganizationTools } from './organizations.js';
+import { registerTagsTool, registerSearchTagsTool } from './tags.js';
 
 /**
  * רושם את כל הכלים על שרת MCP
@@ -17,7 +18,14 @@ export function registerAllTools(mcp) {
   console.error('📋 Registering MCP tools...');
   
   try {
-    // רישום כל הכלים - find_datasets ראשון כי זה הכלי המומלץ
+    // רישום כל הכלים - כלי התגיות החדשים ראשונים
+    registerTagsTool(mcp);
+    console.error('  ✅ list_available_tags registered');
+    
+    registerSearchTagsTool(mcp);
+    console.error('  ✅ search_tags registered');
+    
+    // כלים קיימים
     registerFindDatasetsTool(mcp);
     console.error('  ✅ find_datasets registered');
     
@@ -37,6 +45,7 @@ export function registerAllTools(mcp) {
     console.error('  ✅ search_records registered');
     
     console.error('🎯 All tools registered successfully!');
+    console.error('🆕 NEW: Tag exploration tools added - list_available_tags & search_tags');
     
   } catch (error) {
     console.error('❌ Error registering tools:', error);
@@ -45,11 +54,46 @@ export function registerAllTools(mcp) {
 }
 
 /**
- * מידע על הכלים הזמינים (לשימוש עתידי)
+ * מידע על הכלים הזמינים (מעודכן עם כלים חדשים)
  */
 export const AVAILABLE_TOOLS = {
+  // כלים חדשים
+  list_available_tags: {
+    description: '🏷️ NEW: Explore available tags organized by categories (government, transportation, environment, etc.)',
+    parameters: ['category?', 'show_counts?', 'format?'],
+    examples: [
+      'list_available_tags() → all categories overview',
+      'list_available_tags(category="transportation") → transportation tags only',
+      'list_available_tags(format="suggestions") → themed recommendations'
+    ],
+    features: [
+      'Organized by meaningful categories',
+      'Shows dataset counts per tag',
+      'Provides usage examples',
+      'Multiple display formats'
+    ],
+    notes: 'Perfect starting point for topic-based data exploration. Shows 50+ curated tags with Hebrew/English support.'
+  },
+
+  search_tags: {
+    description: '🔍 NEW: Search for tags by keyword in Hebrew or English',
+    parameters: ['keyword'],
+    examples: [
+      'search_tags("בנק") → banking related tags',
+      'search_tags("transport") → transportation tags',
+      'search_tags("סביבה") → environment tags'
+    ],
+    features: [
+      'Hebrew and English keyword support',
+      'Shows tag categories and dataset counts',
+      'Provides immediate usage examples'
+    ],
+    notes: 'Quickly find relevant tags when you know the topic but not the exact tag names.'
+  },
+
+  // כלים קיימים (משופרים)
   find_datasets: {
-    description: '🔍 RECOMMENDED: Advanced search for datasets with sorting and filtering options.',
+    description: '🔍 ENHANCED: Advanced search for datasets with sorting and filtering options.',
     parameters: ['query?', 'sort?', 'tags?'],
     examples: [
       'find_datasets with query="תקציב"',
@@ -59,7 +103,7 @@ export const AVAILABLE_TOOLS = {
       'find_datasets with query="health" and tags="medical" and sort="updated"'
     ],
     sortOptions: ['newest', 'relevance', 'popular', 'updated'],
-    notes: 'At least one of query or tags is required. Sort options: newest (creation date), relevance (best match), popular (most viewed), updated (recently modified).'
+    notes: 'At least one of query or tags is required. Sort options: newest (creation date), relevance (best match), popular (most viewed), updated (recently modified). Now works seamlessly with list_available_tags.'
   },
 
   get_dataset_info: {
@@ -160,36 +204,42 @@ export const AVAILABLE_TOOLS = {
 };
 
 /**
- * סטטיסטיקות על הכלים (לשימוש עתידי)
+ * סטטיסטיקות על הכלים (מעודכן)
  */
 export function getToolsInfo() {
   return {
     totalTools: Object.keys(AVAILABLE_TOOLS).length,
     toolNames: Object.keys(AVAILABLE_TOOLS),
-    version: '1.2.0' // עדכון לגרסה נכונה
+    version: '2.0.0', // עדכון לגרסה חדשה עם כלי התגיות
+    newFeatures: ['list_available_tags', 'search_tags']
   };
 }
 
 /**
- * זרימת עבודה מומלצת עם הכלים
+ * זרימת עבודה מומלצת עם הכלים (מעודכנת)
  */
 export const RECOMMENDED_WORKFLOW = {
   step1: {
-    tool: 'find_datasets',
-    purpose: 'Find relevant datasets by topic/keywords',
-    example: 'find_datasets("budget municipality")'
+    tool: 'list_available_tags',
+    purpose: 'Discover relevant tags by topic/category',
+    example: 'list_available_tags(category="transportation")'
   },
   step2: {
-    tool: 'get_dataset_info',
-    purpose: 'Get detailed info about interesting datasets',
-    example: 'get_dataset_info("jerusalem-municipality-budget")'
+    tool: 'find_datasets',
+    purpose: 'Find datasets using discovered tags',
+    example: 'find_datasets(tags="תחבורה ציבורית")'
   },
   step3: {
+    tool: 'get_dataset_info',
+    purpose: 'Get detailed info about interesting datasets',
+    example: 'get_dataset_info("dataset-name")'
+  },
+  step4: {
     tool: 'search_records',
     purpose: 'Extract and analyze actual data using resource IDs',
     example: 'search_records(resource_id="...", limit=10)'
   },
-  step4: {
+  step5: {
     tool: 'search_records (advanced)',
     purpose: 'Perform detailed analysis with filters/sorting',
     example: 'search_records(resource_id="...", filters={"Category": "Infrastructure"}, sort=["Amount desc"])'
@@ -197,9 +247,19 @@ export const RECOMMENDED_WORKFLOW = {
 };
 
 /**
- * זרימות עבודה אלטרנטיביות
+ * זרימות עבודה אלטרנטיביות (מעודכנות)
  */
 export const ALTERNATIVE_WORKFLOWS = {
+  tagBasedExploration: {
+    description: 'Tag-based data discovery (NEW)',
+    steps: [
+      'list_available_tags(format="suggestions") → see themed recommendations',
+      'search_tags("keyword") → find specific tags',
+      'find_datasets(tags="chosen-tag") → discover relevant datasets',
+      'get_dataset_info → understand data structure',
+      'search_records → extract actual data'
+    ]
+  },
   organizationResearch: {
     description: 'Research government organizations and their data publishing',
     steps: [
@@ -212,6 +272,7 @@ export const ALTERNATIVE_WORKFLOWS = {
   topicExploration: {
     description: 'Explore data on a specific topic across government',
     steps: [
+      'list_available_tags(category="topic") → discover relevant tags',
       'find_datasets → discover relevant datasets',
       'get_dataset_info → understand data structure',
       'get_organization_info → understand data sources',
@@ -229,6 +290,7 @@ export const ALTERNATIVE_WORKFLOWS = {
   comprehensiveResearch: {
     description: 'Thorough research starting from topic',
     steps: [
+      'list_available_tags → discover all available topics',
       'find_datasets → discover datasets',
       'list_organizations → understand sources',
       'get_dataset_info (multiple) → compare datasets',
@@ -238,13 +300,13 @@ export const ALTERNATIVE_WORKFLOWS = {
 };
 
 /**
- * קטגוריות כלים לפי שימוש
+ * קטגוריות כלים לפי שימוש (מעודכנות)
  */
 export const TOOL_CATEGORIES = {
   discovery: {
     name: 'Data Discovery',
-    tools: ['find_datasets', 'list_organizations', 'list_all_datasets'],
-    purpose: 'Find and explore available datasets and organizations'
+    tools: ['list_available_tags', 'search_tags', 'find_datasets', 'list_organizations', 'list_all_datasets'],
+    purpose: 'Find and explore available datasets, tags, and organizations'
   },
   analysis: {
     name: 'Data Analysis', 

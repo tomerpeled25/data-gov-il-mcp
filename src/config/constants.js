@@ -4,7 +4,7 @@ export const CKAN_BASE_URL = "https://data.gov.il/api/3/action";
 export const DEFAULT_TIMEOUT = 10000;
 export const SEARCH_TIMEOUT = 15000;
 
-export const USER_AGENT = 'MCP-DataGovIL-Client/1.2.0';
+export const USER_AGENT = 'MCP-DataGovIL-Client/2.0.0';
 
 export const DEFAULT_LIMITS = {
   list: 10,
@@ -27,6 +27,33 @@ export const POPULAR_ORGANIZATIONS = [
   'jerusalem',
   'cbs',
   'ministry-of-finance'
+];
+
+// נושאים פופולריים לחיפוש (לשימוש כקמילות מפתח)
+export const POPULAR_TOPICS = [
+  'אוצר וכלכלה',
+  'סביבה', 
+  'משרד התחבורה',
+  'תחבורה',
+  'GIS',
+  'אוכלוסיה',
+  'מים',
+  'תקציב'
+];
+
+// קטגוריות נושאים זמינות
+export const TOPIC_CATEGORIES = [
+  'government',
+  'transportation', 
+  'environment',
+  'health_welfare',
+  'education',
+  'demographics',
+  'technology',
+  'economy',
+  'agriculture',
+  'tourism',
+  'organizations'
 ];
 
 // דוגמאות resource IDs שבדקנו שעובדים (לתיעוד ובדיקות)
@@ -57,11 +84,14 @@ export const COMMON_KEYWORDS = {
 };
 
 /**
- * דוגמאות חיפוש עבור find_datasets
+ * דוגמאות חיפוש עבור find_datasets (מעודכן לחיפוש לפי נושא)
  */
 export const FIND_EXAMPLES = [
+  'find_datasets("תחבורה") → transportation datasets',
   'find_datasets("תקציב עירייה") → municipal budgets',
   'find_datasets("בנק") → banking related datasets', 
   'find_datasets("traffic") → transportation data',
-  'find_datasets("health בריאות") → health datasets'
+  'find_datasets("health בריאות") → health datasets',
+  'find_datasets("סביבה") → environment datasets',
+  'find_datasets("אוכלוסיה") → demographics datasets'
 ];
