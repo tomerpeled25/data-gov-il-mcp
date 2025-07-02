@@ -2,7 +2,7 @@
   "name": "data-gov-il-mcp",
   "version": "2.0.0",
   "description": "Advanced MCP server for seamless access to Israeli Government Open Data through data.gov.il with intelligent tag discovery",
-  "main": "server.js",
+  "main": "server.cjs",
   "type": "module",
   "scripts": {
     "start": "node server.cjs"
