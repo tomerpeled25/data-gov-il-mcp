@@ -1,50 +1,22 @@
-const express = require('express');
-const { spawn } = require('child_process');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+import { HttpServerTransport } from '@modelcontextprotocol/sdk/server/http.js';
+import { createMcpServer } from './lib/server.js'; // ודא שהנתיב נכון
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const mcp = spawn('node', ['stdio.js']);
+// יצירת MCP
+const mcp = createMcpServer();
 
-mcp.stderr.on('data', (data) => {
-  console.error('MCP stderr:', data.toString());
-});
+// הגדרת transport מסוג HTTP
+const transport = new HttpServerTransport({ app });
 
-mcp.stdout.on('data', (data) => {
-  try {
-    const response = JSON.parse(data.toString());
-    if (response && response.id && pendingResponses[response.id]) {
-      pendingResponses[response.id](response);
-      delete pendingResponses[response.id];
-    }
-  } catch (e) {
-    console.error('Failed to parse MCP response:', e);
-  }
-});
-
-const pendingResponses = {};
-let requestId = 1;
-
-function askMCP(tool, input) {
-  return new Promise((resolve) => {
-    const id = (requestId++).toString();
-    pendingResponses[id] = resolve;
-
-    const payload = JSON.stringify({ id, tool, input });
-    mcp.stdin.write(payload + '\n');
+// חיבור ה-MCP לשרת
+mcp.connect(transport).then(() => {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`✅ MCP API ready at http://localhost:${port}`);
   });
-}
-
-// דוגמה ל־API פשוט: מאפשר לשלוח שאילתה (למשל "?q=בן ציון תל אביב")
-app.get('/api/zoning', async (req, res) => {
-  const query = req.query.q || 'תכנון עיר תל אביב';
-  const result = await askMCP('find_datasets', { query });
-  res.json(result);
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`✅ MCP API Server is running on port ${PORT}`);
 });
