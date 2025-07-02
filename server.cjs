@@ -1,38 +1,23 @@
-const express = require('express');
-const { spawn } = require('child_process');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+import { HttpServerTransport } from '@modelcontextprotocol/sdk/server/http.js';
+import { createMcpServer } from './lib/server.js'; // ודא שזה הנתיב הנכון לפי התיקייה שלך
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
-const mcp = spawn('node', ['stdio.js']);
-
-mcp.stderr.on('data', data => console.error('MCP stderr:', data.toString()));
-
-app.get('/api/zoning', (req, res) => {
-  const query = req.query.q || 'תכנון עיר תל אביב';
-
-  const payload = JSON.stringify({
-    tool: "find_datasets",
-    input: { query }
-  }) + '\n';
-
-  mcp.stdin.write(payload);
-
-  let buffer = '';
-
-  const handler = (data) => {
-    buffer += data.toString();
-    try {
-      const json = JSON.parse(buffer);
-      res.json(json);
-      mcp.stdout.off('data', handler);
-    } catch (e) {}
-  };
-
-  mcp.stdout.on('data', handler);
+const mcp = createMcpServer({
+  name: "data-gov-il-js",
+  version: "2.0.0",
+  description: "MCP server for data.gov.il via HTTP"
 });
 
-app.listen(3000, () => {
-  console.log('MCP API ready at http://localhost:3000');
+const transport = new HttpServerTransport({ app });
+
+mcp.connect(transport).then(() => {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`✅ MCP HTTP API ready on port ${PORT}`);
+  });
 });
