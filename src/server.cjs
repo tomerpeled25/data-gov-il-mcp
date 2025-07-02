@@ -1,22 +1,23 @@
 import express from 'express';
 import cors from 'cors';
 import { HttpServerTransport } from '@modelcontextprotocol/sdk/server/http.js';
-import { createMcpServer } from './lib/server.js'; // ודא שהנתיב נכון
+import { createMcpServer } from './lib/server.js'; // ודא שזה הנתיב הנכון לפי התיקייה שלך
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// יצירת MCP
-const mcp = createMcpServer();
+const mcp = createMcpServer({
+  name: "data-gov-il-js",
+  version: "2.0.0",
+  description: "MCP server for data.gov.il via HTTP"
+});
 
-// הגדרת transport מסוג HTTP
 const transport = new HttpServerTransport({ app });
 
-// חיבור ה-MCP לשרת
 mcp.connect(transport).then(() => {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`✅ MCP API ready at http://localhost:${port}`);
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`✅ MCP HTTP API ready on port ${PORT}`);
   });
 });
